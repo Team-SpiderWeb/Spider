@@ -5,24 +5,25 @@ import json
 import js2xml
 import re
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
 
 class Spider(scrapy.Spider):
 
     name = "rappler"
 
-    sitemapurls = []
+    # sitemapurls = []
 
-    with open('sitemap.json') as jsonfile:
-        data = json.load(jsonfile)
+    # with open('sitemap.json') as jsonfile:
+    #     data = json.load(jsonfile)
 
-    for index, element in enumerate(data):  
-        url = data[index]['url']
-        sitemapurls.append(url)
+    # for index, element in enumerate(data):  
+    #     url = data[index]['url']
+    #     sitemapurls.append(url)
 
-    start_urls = sitemapurls
+    # start_urls = sitemapurls
 
     # NORMAL
-    # start_urls = ["http://www.rappler.com/rappler-blogs/buena-bernal/82375-pope-francis-coverage-non-catholic-reporter"]
+    start_urls = ["http://www.rappler.com/rappler-blogs/buena-bernal/82375-pope-francis-coverage-non-catholic-reporter"]
     # start_urls = ["http://www.rappler.com/entertainment/news/124642-maria-ozawa-denies-one-night-stand-cesar-montano"]
     # start_urls = ["http://www.rappler.com/entertainment/news/160152-uncut-fifty-shades-darker-mtrcb-rating"]
     
@@ -44,6 +45,10 @@ class Spider(scrapy.Spider):
 
 
     def parse(self, response):
+        valid_url = 'http://www.rappler.com'
+        parlink_count = 0
+        templinks = []
+
         for rappler in response.css('div.ob-widget-section.ob-last'):
             rapplerStory = response.css('div.story-area')
             item = ThesisFnlItem()
@@ -70,32 +75,25 @@ class Spider(scrapy.Spider):
             item["title"] = title
 
             link = rappler.css('a::attr(href)').extract()
-            link_par = rapplerStory.css('p>a::attr(href)').extract()
-            
-            try:
-                if link_par[0] is not None:
-                    link.append(link_par[0])
-                if link_par[1] is not None:
-                    link.append(link_par[1])
-            except IndexError:
-                pass
+            par_link = rapplerStory.css('p>a::attr(href)').extract()
+           
+            for rap_link in par_link:
+                if parlink_count < 2:
+                    parsed_uri = urlparse(rap_link)
+                    domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
 
-            item["link"] =  link
+                    if valid_url in domain:
+                        link.append(rap_link)
+                        parlink_count+=1
+
+            item["link"] = link
 
             yield item
             
-            next_page = link
-
-            countNext = 0
-
-            for i in next_page:
-                if next_page[countNext] is not None: 
-                    next_page[countNext] = response.urljoin(next_page[countNext])
-                    countNext+=1
-            
+            next_page = link          
             countNext = 0
             for j in next_page:
-                yield SplashRequest(next_page[countNext], self.parse,
+                yield SplashRequest(response.urljoin(next_page[countNext]), self.parse,
                      endpoint='render.html',
                      args={'wait': 10}, dont_filter="TRUE"
                   )
