@@ -11,32 +11,20 @@ class Spider(scrapy.Spider):
 
     name = "rappler"
 
-    # sitemapurls = []
+    sitemapurls = []
 
-    # with open('sitemap.json') as jsonfile:
-    #     data = json.load(jsonfile)
-
-    # for index, element in enumerate(data):  
-    #     url = data[index]['url']
-    #     sitemapurls.append(url)
-
-    # start_urls = sitemapurls
-
-    # NORMAL
-    start_urls = ["http://www.rappler.com/rappler-blogs/buena-bernal/82375-pope-francis-coverage-non-catholic-reporter"]
-    # start_urls = ["http://www.rappler.com/entertainment/news/124642-maria-ozawa-denies-one-night-stand-cesar-montano"]
-    # start_urls = ["http://www.rappler.com/entertainment/news/160152-uncut-fifty-shades-darker-mtrcb-rating"]
+    with open('/Users/rizab/Desktop/THESIS/Python/sitemap/result.json') as jsonfile:
+        data = json.load(jsonfile)
     
-    # WITH FULLTEXT
-    # start_urls = ["http://www.rappler.com/world/regions/asia-pacific/172250-south-korea-freeze-new-thaad-deployment-pending-probe"]
-    # start_urls = ["http://www.rappler.com/world/regions/us-canada/172872-trump-south-korea-moon-north-korea-talks"]
-    
-    # IMAGE ONLY
-    # start_urls = ["http://www.rappler.com/pugad-baboy/83203-excuses"]
+    for u in data['sitemap']:
+        sitemapurls.append(u['url'])
+
+    start_urls = sitemapurls
 
     allowed_domains = ["www.rappler.com"]
 
     def start_requests(self):
+        
         for url in self.start_urls:
             yield SplashRequest(url, self.parse,
                 endpoint='render.html',
@@ -48,7 +36,7 @@ class Spider(scrapy.Spider):
         valid_url = 'http://www.rappler.com'
         parlink_count = 0
         templinks = []
-
+        
         for rappler in response.css('div.ob-widget-section.ob-last'):
             rapplerStory = response.css('div.story-area')
             item = ThesisFnlItem()
@@ -59,7 +47,7 @@ class Spider(scrapy.Spider):
                 js = response.xpath('//script/text()').extract()
                 jstree = js2xml.parse(js[1])
                 content = js2xml.jsonlike.make_dict(jstree.xpath('//var[@name="r4articleData"]//object//property[@name="fulltext"]')[0])
-                cleantext = BeautifulSoup(str(content)).text
+                cleantext = BeautifulSoup(str(content), "lxml").text
                 content = re.sub('fulltext', '', cleantext, 1)
                 content = re.sub('[^A-Za-z0-9\.]+', ' ', content)
                 item["content"] = content
@@ -70,7 +58,6 @@ class Spider(scrapy.Spider):
                 except:
                     item["content"] = ""  
 
-            # item["content"] = response.xpath('//div[starts-with(@class,"story-area")]//p//text() | //div[starts-with(@class,"story-area")]//p/span//text()').extract()
             item["url"]= response.url
             item["title"] = title
 
@@ -95,8 +82,7 @@ class Spider(scrapy.Spider):
             for j in next_page:
                 yield SplashRequest(response.urljoin(next_page[countNext]), self.parse,
                      endpoint='render.html',
-                     args={'wait': 10}, dont_filter="TRUE"
+                     args={'wait': 10}
                   )
                 countNext+=1
-               
-             
+
