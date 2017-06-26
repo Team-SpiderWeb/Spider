@@ -53,8 +53,9 @@ class Spider(scrapy.Spider):
                 item["content"] = content
             except:
                 try:
-                    content = response.xpath('//div[starts-with(@class,"story-area")]//p//text() | //div[starts-with(@class,"story-area")]//p/span//text()').extract()
+                    content = response.xpath('//div[starts-with(@class,"story-area")]//p/text() | //div[starts-with(@class,"story-area")]//p/span//text()').extract()
                     item["content"] = u','.join(content)
+
                 except:
                     item["content"] = ""  
 
