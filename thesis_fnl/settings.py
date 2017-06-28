@@ -27,7 +27,7 @@ ROBOTSTXT_OBEY = True
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 10
+DOWNLOAD_DELAY = 20
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -100,7 +100,7 @@ SPLASH_URL = 'http://localhost:8050/'
 DUPEFILTER_CLASS = 'scrapy.dupefilters.RFPDupeFilter'
 HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 
-CLOSESPIDER_PAGECOUNT = 1200
+CLOSESPIDER_PAGECOUNT = 700
 
 # DEPTH_PRIORITY = 1
 # SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
