@@ -6,6 +6,11 @@ import js2xml
 import re
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
+import lxml.etree as et
+from lxml.etree import HTMLParser
+from io import StringIO
+import io
+
 
 class Spider(scrapy.Spider):
 
@@ -53,7 +58,8 @@ class Spider(scrapy.Spider):
                 item["content"] = content
             except:
                 try:
-                    content = response.xpath('//div[starts-with(@class,"story-area")]//p/text() | //div[starts-with(@class,"story-area")]//p/span//text()').extract()
+
+                    content = response.xpath('//div[starts-with(@class,"story-area")]//p//text()[not(ancestor::script|ancestor::style|ancestor::noscript)] | //div[starts-with(@class,"story-area")]//p/span//text()').extract()
                     item["content"] = u','.join(content)
 
                 except:
@@ -70,7 +76,7 @@ class Spider(scrapy.Spider):
                     parsed_uri = urlparse(rap_link)
                     domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
 
-                    if valid_url in domain:
+                    if valid_url in domain and 'indonesia' not in domain:
                         link.append(rap_link)
                         parlink_count+=1
 
