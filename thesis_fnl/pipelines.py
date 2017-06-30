@@ -57,8 +57,8 @@ class ThesisFnlPipeline(object):
 	def save(self, row): 
 		cursor = self.cnx.cursor()
 		page_query = ("INSERT INTO " + self.page_table + 
-			"(url, title, content) "
-			"VALUES (%(url)s, %(title)s, %(content)s)")
+			"(url, author, date, title, content) "
+			"VALUES (%(url)s, %(author)s, %(date)s, %(title)s, %(content)s)")
 
 		# Insert new page row
 		cursor.execute(page_query, row)

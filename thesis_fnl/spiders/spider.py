@@ -6,17 +6,15 @@ import js2xml
 import re
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
-import lxml.etree as et
-from lxml.etree import HTMLParser
-from io import StringIO
-import io
-
+import urllib
 
 class Spider(scrapy.Spider):
 
     name = "rappler"
 
     sitemapurls = []
+
+    html_ctr = 0
 
     with open('/Users/rizab/Desktop/THESIS/Python/sitemap/result.json') as jsonfile:
         data = json.load(jsonfile)
@@ -41,12 +39,30 @@ class Spider(scrapy.Spider):
         valid_url = 'http://www.rappler.com'
         parlink_count = 0
         templinks = []
-        
+
         for rappler in response.css('div.ob-widget-section.ob-last'):
+
             rapplerStory = response.css('div.story-area')
             item = ThesisFnlItem()
 
             title = response.css('title::text').extract_first()
+            
+            self.html_ctr += 1
+
+            filename = '%d.html' % self.html_ctr
+            with open(filename, 'wb') as f:
+               f.write(response.body)
+
+            page = urllib.request.urlopen(response.url).read()
+            soup = BeautifulSoup(page, "lxml")
+
+            author = soup.find('meta', attrs={'name':'bt:author'}) 
+            date = soup.find('meta', attrs={'name':'bt:pubDate'}) 
+
+            if author:
+                item["author"] = author.get('content')
+            if date:
+                item["date"] = date.get('content')
 
             try:
                 js = response.xpath('//script/text()').extract()
