@@ -1,4 +1,7 @@
 import scrapy
+from scrapy.conf import settings
+import os
+import os.path
 from scrapy_splash import SplashRequest
 from thesis_fnl.items import ThesisFnlItem
 import json
@@ -8,13 +11,12 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import urllib
 
+
 class Spider(scrapy.Spider):
 
     name = "rappler"
-
-    sitemapurls = []
-
     html_ctr = 0
+    sitemapurls = []
 
     with open('/Users/rizab/Desktop/THESIS/Python/sitemap/result.json') as jsonfile:
         data = json.load(jsonfile)
@@ -46,10 +48,13 @@ class Spider(scrapy.Spider):
             item = ThesisFnlItem()
 
             title = response.css('title::text').extract_first()
-            
-            self.html_ctr += 1
 
-            filename = '%d.html' % self.html_ctr
+            if not os.path.exists(settings['HTML_OUTPUT_DIRECTORY']):
+                os.makedirs(settings['HTML_OUTPUT_DIRECTORY'])
+
+            self.html_ctr += 1
+            
+            filename = '%s/%d.html' % (settings['HTML_OUTPUT_DIRECTORY'], self.html_ctr)
             with open(filename, 'wb') as f:
                f.write(response.body)
 
