@@ -18,6 +18,7 @@ class Spider(scrapy.Spider):
     html_ctr = 0
     sitemapurls = []
 
+    #get urls in sitemap
     with open('/Users/rizab/Desktop/THESIS/Python/sitemap/result.json') as jsonfile:
         data = json.load(jsonfile)
     
@@ -49,11 +50,13 @@ class Spider(scrapy.Spider):
 
             title = response.css('title::text').extract_first()
 
+            #create dir 
             if not os.path.exists(settings['HTML_OUTPUT_DIRECTORY']):
                 os.makedirs(settings['HTML_OUTPUT_DIRECTORY'])
 
             self.html_ctr += 1
             
+            #save html file
             filename = '%s/%d.html' % (settings['HTML_OUTPUT_DIRECTORY'], self.html_ctr)
             with open(filename, 'wb') as f:
                f.write(response.body)
@@ -61,6 +64,7 @@ class Spider(scrapy.Spider):
             page = urllib.request.urlopen(response.url).read()
             soup = BeautifulSoup(page, "lxml")
 
+            #metadata (author & date)
             author = soup.find('meta', attrs={'name':'bt:author'}) 
             date = soup.find('meta', attrs={'name':'bt:pubDate'}) 
 
@@ -70,6 +74,7 @@ class Spider(scrapy.Spider):
                 item["date"] = date.get('content')
 
             try:
+                #content located in script
                 js = response.xpath('//script/text()').extract()
                 jstree = js2xml.parse(js[1])
                 content = js2xml.jsonlike.make_dict(jstree.xpath('//var[@name="r4articleData"]//object//property[@name="fulltext"]')[0])
@@ -79,7 +84,7 @@ class Spider(scrapy.Spider):
                 item["content"] = content
             except:
                 try:
-
+                    #content located in <p> (does not include scripts) or <p><span> 
                     content = response.xpath('//div[starts-with(@class,"story-area")]//p//text()[not(ancestor::script|ancestor::style|ancestor::noscript)] | //div[starts-with(@class,"story-area")]//p/span//text()').extract()
                     item["content"] = u','.join(content)
 
@@ -91,7 +96,8 @@ class Spider(scrapy.Spider):
 
             link = rappler.css('a::attr(href)').extract()
             par_link = rapplerStory.css('p>a::attr(href)').extract()
-           
+            
+            #links within the content
             for rap_link in par_link:
                 if parlink_count < 2:
                     parsed_uri = urlparse(rap_link)
@@ -105,6 +111,7 @@ class Spider(scrapy.Spider):
 
             yield item
             
+            #dynamic js (outbrain)
             next_page = link          
             countNext = 0
             for j in next_page:
