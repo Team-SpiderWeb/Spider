@@ -50,7 +50,7 @@ class Spider(scrapy.Spider):
 
             title = response.css('title::text').extract_first()
 
-            #create dir 
+            #make dir 
             if not os.path.exists(settings['HTML_OUTPUT_DIRECTORY']):
                 os.makedirs(settings['HTML_OUTPUT_DIRECTORY'])
 
@@ -84,7 +84,7 @@ class Spider(scrapy.Spider):
                 item["content"] = content
             except:
                 try:
-                    #content located in <p> (does not include scripts) or <p><span> 
+                    #content located in <p> (scripts not included) or <p><span> 
                     content = response.xpath('//div[starts-with(@class,"story-area")]//p//text()[not(ancestor::script|ancestor::style|ancestor::noscript)] | //div[starts-with(@class,"story-area")]//p/span//text()').extract()
                     item["content"] = u','.join(content)
 
@@ -93,7 +93,7 @@ class Spider(scrapy.Spider):
 
             item["url"]= response.url
             item["title"] = title
-
+            
             link = rappler.css('a::attr(href)').extract()
             par_link = rapplerStory.css('p>a::attr(href)').extract()
             
